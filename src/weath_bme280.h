@@ -20,19 +20,28 @@
 
 #pragma once
 
-/**
- * OLED screen
- */
-#define GFXFF 1
-#define GF_FSB18 &FreeSansBold18pt7b
-#define CURRENT_FONT GF_FSB18
-#define BKG_COLOR BLACK
+#include <Adafruit_Sensor.h>
+#include <Adafruit_BME280.h>
 
-/**
- * BME280
- */
-#define BME_SCK 13
-#define BME_MISO 12
-#define BME_MOSI 11
-#define BME_CS 10
+#define SEALEVELPRESSURE_HPA (1013.25)
 
+// bme280_t
+typedef struct
+{
+    float temp;
+    float pres;
+    float hum;
+    bool valChanged;
+} bme280_t;
+
+class weath_bme280 : public Adafruit_BME280
+{
+private:
+    bme280_t _bme280_val;
+    bme280_t _bme280_prev;
+
+public:
+    weath_bme280();
+    bool setup();
+    bool readAll(bme280_t *bme280_val);
+};
