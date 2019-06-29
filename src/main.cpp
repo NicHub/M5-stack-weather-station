@@ -1,73 +1,31 @@
 /**
- * M5-stack-temperature
+ * M5-stack-weather-station
  */
 
 #include <Arduino.h>
 #include <M5Stack.h>
-#define GFXFF 1
-
-#define CF_OL24 &Orbitron_Light_24
-#define CF_OL32 &Orbitron_Light_32
-#define CF_RT24 &Roboto_Thin_24
-#define CF_S24 &Satisfy_24
-#define CF_Y32 &Yellowtail_32
-#define GF_FSB24 &FreeSansBold24pt7b
-#define GF_FSB18 &FreeSansBold18pt7b
-#define GF_FSB12 &FreeSansBold12pt7b
-#define CURRENT_FONT GF_FSB18
-#define FONT_SIZE 2
-#define FONT_COLOR GREENYELLOW
-#define BKG_COLOR BLACK
-
 #include <Wire.h>
-#include <SPI.h>
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
+#include <main.h>
 
-#define BME_SCK 13
-#define BME_MISO 12
-#define BME_MOSI 11
-#define BME_CS 10
-
-#define SEALEVELPRESSURE_HPA (1013.25)
-Adafruit_BME280 bme; // I2C
-//Adafruit_BME280 bme(BME_CS); // hardware SPI
-//Adafruit_BME280 bme(BME_CS, BME_MOSI, BME_MISO, BME_SCK); // software SPI
-
-/**
- *
- */
-#ifdef __cplusplus
-extern "C"
-{
-#endif
-    uint8_t temprature_sens_read();
-#ifdef __cplusplus
-}
-#endif
-uint8_t temprature_sens_read();
+Adafruit_BME280 bme;
 
 /**
  *
  */
 bool getTemperature(char temperatureStr[])
 {
-    // float temp = (temprature_sens_read() - 32) / 1.8;
     float temp = bme.readTemperature();
-    temp  = round(10 * temp) / 10;
-#if false
-    static float rand = 0.1;
-    rand += 0.1;
-    temp += rand;
-#endif
+    temp = round(10 * temp) / 10;
     static float tempPrev = -1E6;
     bool tempHasChanged = (temp != tempPrev);
     tempPrev = temp;
-    sprintf(temperatureStr, "%.1f _C", temp);
+    sprintf(temperatureStr, "%.1f *C", temp);
     return tempHasChanged;
 }
 
-void readBME80()
+void readBME280()
 {
     Serial.print("Temperature = ");
     Serial.print(bme.readTemperature());
@@ -92,19 +50,27 @@ void readBME80()
 /**
  *
  */
+void drawDegreeGlyph(int32_t degx0, int32_t degy0)
+{
+    M5.Lcd.fillCircle(degx0, degy0, 11, FONT_COLOR);
+    M5.Lcd.fillCircle(degx0, degy0, 7, BLACK);
+}
+
+/**
+ *
+ */
 void setup()
 {
     Serial.begin(BAUD_RATE);
     M5.begin();
+    M5.Lcd.setBrightness(128);
     M5.Lcd.fillScreen(BKG_COLOR);
     M5.Lcd.setTextSize(FONT_SIZE);
     M5.Lcd.setTextDatum(MC_DATUM);
     M5.Lcd.setFreeFont(CURRENT_FONT);
 
-    bool status;
-
     // default settings
-    status = bme.begin();
+    bool status = bme.begin();
     if (!status)
     {
         Serial.println("Could not find a valid BME280 sensor, check wiring!");
@@ -131,7 +97,7 @@ void loop()
         return;
     }
 
-    readBME80();
+    readBME280();
 
     // Print temperature to serial.
     Serial.println(temperatureStr);
@@ -144,6 +110,7 @@ void loop()
     // Print new measurement to screen.
     M5.Lcd.setTextColor(FONT_COLOR);
     M5.Lcd.drawString(temperatureStr, 160, 95, GFXFF);
+    drawDegreeGlyph(210, 81);
 
     // Keep a copy of the measurement.
     strcpy(temperatureStrPrev, temperatureStr);
