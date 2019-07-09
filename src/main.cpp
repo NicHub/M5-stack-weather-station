@@ -145,7 +145,19 @@ void setup()
 {
     setupSerial();
     setupM5();
-    bme.setup();
+    bool status = bme.setup();
+    if (!status)
+    {
+        Serial.println("Could not find a valid BME280 sensor, check wiring!");
+        M5.Lcd.setTextSize(1);
+        M5.Lcd.setTextColor(RED);
+        M5.Lcd.drawString("   BME280 sensor", 5, 75, GFXFF);
+        M5.Lcd.drawString("   not connected!", 5, 75 + 60, GFXFF);
+        while (true)
+        {
+            yield();
+        }
+    }
 }
 
 /**
@@ -169,11 +181,11 @@ void loop()
     // Print to OLED
     print2OLED(bme280_val);
 
- delay(1000);
+    delay(5000);
 
-// #define TIME_TO_SLEEP 1
-//     esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * 1000000);
-//     Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) +
-//                    " Seconds");
-//     esp_deep_sleep_start();
+    // #define TIME_TO_SLEEP 1
+    //     esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * 1000000);
+    //     Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) +
+    //                    " Seconds");
+    //     esp_deep_sleep_start();
 }

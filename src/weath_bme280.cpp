@@ -36,14 +36,6 @@ bool weath_bme280::setup()
 {
     // default settings
     bool status = begin();
-    if (!status)
-    {
-        Serial.println("Could not find a valid BME280 sensor, check wiring!");
-        while (true)
-        {
-            yield();
-        }
-    }
     return status;
 }
 
